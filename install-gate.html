@@ -1,0 +1,12 @@
+<script>
+  // Omarchy Server: OpenBot admits only browsers that have entered its install token (the app password).
+  // Without that cookie every API call fails, so send the browser to the password page first.
+  (function () {
+    try {
+      var x = new XMLHttpRequest();
+      x.open("GET", "/api/me", false);
+      x.send();
+      if (x.status === 403) { window.stop(); location.replace("/signin.html"); }
+    } catch (e) {}
+  })();
+</script>

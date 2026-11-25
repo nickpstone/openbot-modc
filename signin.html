@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in to OpenBot</title>
+<style>
+  :root { --bg:#f6f6f8; --card:#fff; --text:#1b1b22; --muted:#62626e; --line:#d9d9e0; --accent:#6430ab; --err:#b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141418; --card:#1e1e24; --text:#ececf1; --muted:#a0a0ad; --line:#34343d; --accent:#a98be0; --err:#f2b8b5; } }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--text);
+         font:15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding:16px; }
+  main { width:100%; max-width:380px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:28px; }
+  h1 { font-size:20px; margin:0 0 6px; }
+  p { margin:0 0 16px; color:var(--muted); }
+  input { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+  button { margin-top:14px; width:100%; padding:11px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  #err { color:var(--err); margin:10px 0 0; min-height:1.5em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sign in to OpenBot</h1>
+  <p>Enter the app password shown on OpenBot's page in Omarchy Server.</p>
+  <form id="f">
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Password" autofocus>
+    <button type="submit">Sign in</button>
+    <p id="err"></p>
+  </form>
+</main>
+<script>
+  document.getElementById("f").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var pw = document.getElementById("pw").value.trim(), err = document.getElementById("err");
+    if (!pw) return;
+    err.textContent = "";
+    try {
+      var r = await fetch("/api/me", { headers: { "X-OpenBot-Install-Token": pw }, cache: "no-store" });
+      if (r.status === 403) { err.textContent = "That password isn't right."; return; }
+      if (!r.ok) { err.textContent = "OpenBot answered " + r.status + ". Try again in a moment."; return; }
+    } catch (x) { err.textContent = "Couldn't reach OpenBot. Try again in a moment."; return; }
+    // Sets OpenBot's own sign-in cookie (kept for 400 days) and opens the app.
+    location.replace("/api/install/enter?token=" + encodeURIComponent(pw) + "&to=/");
+  });
+</script>
+</body>
+</html>
