@@ -37,4 +37,26 @@ done < /config/openbot.env
 KEY_ENCRYPTION_KEY="$(cat /config/key-encryption-key)"
 export KEY_ENCRYPTION_KEY
 
+# OpenBot answers only addresses it knows. Behind Omarchy Server's gateway the browser's own address
+# arrives, so allow this server's names on the app's port (OPENBOT_HOSTS, OPENBOT_WEB_PORT from the
+# compose file), plus any origins listed one per line in /config/extra-origins (a Tailscale name, say).
+if [ -z "${TRUSTED_ORIGINS:-}" ]; then
+  origins=""
+  port="${OPENBOT_WEB_PORT:-}"
+  for h in $(printf '%s' "${OPENBOT_HOSTS:-}" | tr ',' ' '); do
+    [ -n "$h" ] || continue
+    for scheme in http https; do
+      origins="$origins,$scheme://$h${port:+:$port}"
+    done
+  done
+  if [ -f /config/extra-origins ]; then
+    while IFS= read -r o || [ -n "$o" ]; do
+      o="$(printf '%s' "$o" | tr -d ' \r')"
+      case "$o" in http://*|https://*) origins="$origins,${o%/}" ;; esac
+    done < /config/extra-origins
+  fi
+  TRUSTED_ORIGINS="${origins#,}"
+  [ -z "$TRUSTED_ORIGINS" ] || export TRUSTED_ORIGINS
+fi
+
 exec /init

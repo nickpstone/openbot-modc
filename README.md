@@ -19,6 +19,14 @@ This image is the official `ghcr.io/copilotkit/openbot` image with three additio
 - **Defaults:** the embedded PostgreSQL, single-user mode and managed CopilotKit Intelligence. The
   key that encrypts stored credentials is generated once into `/config/key-encryption-key`.
 
+## Addresses
+
+OpenBot only answers addresses it knows. IP addresses always work. The entrypoint also allows each
+name in `OPENBOT_HOSTS` (comma separated) on port `OPENBOT_WEB_PORT`, over http and https, plus any
+origins listed one per line in `/config/extra-origins`. In single-user mode OpenBot refuses to start
+with an address the public internet reaches, and it counts Tailscale `*.ts.net` names as public, so
+use the Tailscale IP instead.
+
 ## Volumes
 
 | Path | What |
@@ -30,5 +38,5 @@ This image is the official `ghcr.io/copilotkit/openbot` image with three additio
 ## Build
 
 ```sh
-podman build --format docker --build-arg OPENBOT_VERSION=v1.1.3 -t ghcr.io/nickpstone/openbot:1.1.3-1 .
+podman build --format docker --build-arg OPENBOT_VERSION=v1.1.3 -t ghcr.io/nickpstone/openbot:1.1.3-2 .
 ```
